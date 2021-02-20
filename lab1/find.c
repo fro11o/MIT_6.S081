@@ -11,7 +11,7 @@ isMatch(char *s, char*pat)
     if (strlen(s) < strlen(pat)) {
         return 0;
     }
-    for (i = 0; i < strlen(s) - strlen(pat); ++i) {
+    for (i = 0; i < strlen(s) - strlen(pat) + 1; ++i) {
         find = 1;
         for (j = 0; j < strlen(pat); ++j) {
             if (s[i+j] != pat[j]) {
@@ -48,7 +48,7 @@ find(char *path, char *pat)
     switch(st.type){
     case T_FILE:
         if (isMatch(path, pat)) {
-            printf("%s %d %d %l\n", fmtname(path), st.type, st.ino, st.size);
+            printf("%s\n", path);
         }
         break;
 
@@ -61,7 +61,8 @@ find(char *path, char *pat)
         p = buf+strlen(buf);
         *p++ = '/';
         while(read(fd, &de, sizeof(de)) == sizeof(de)){
-            if(de.inum == 0)
+            if(de.inum == 0 || strcmp(de.name, ".") == 0 ||
+                    strcmp(de.name, "..") == 0)
                 continue;
             memmove(p, de.name, DIRSIZ);
             p[DIRSIZ] = 0;
@@ -70,10 +71,10 @@ find(char *path, char *pat)
                 continue;
             }
             if (st.type == T_DIR) {
-                find(path, pat);
+                find(buf, pat);
             } else {
-                if (isMatch(path, pat)) {
-                    printf("%s %d %d %d\n", fmtname(buf), st.type, st.ino, st.size);
+                if (isMatch(buf, pat)) {
+                    printf("%s\n", buf);
                 }
             }
         }
